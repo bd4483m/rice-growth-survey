@@ -1,0 +1,26 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>水稲 音声認識テスト</title><style>body{font-family:-apple-system,sans-serif;background:#f5f6f3;margin:0;color:#182018}main{max-width:680px;margin:auto;padding:20px}.card{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 2px 10px #0001}button{width:100%;font-size:21px;font-weight:700;padding:17px;border:0;border-radius:14px;background:#176b37;color:#fff}.stop{background:#8c2f2f;margin-top:10px}.raw{min-height:48px;padding:12px;background:#f2f4f1;border-radius:10px;white-space:pre-wrap}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.cell{background:#eef3ed;border-radius:10px;padding:12px;font-size:20px}.n{font-size:13px;color:#647064;display:block}.ok{color:#176b37}.bad{color:#9b2828}</style></head><body><main>
+<h1>🌾 草丈10株 音声認識テスト</h1><p>iPhoneのSafariで数字10個を連続認識できるか確認します。</p>
+<div class="card"><div id="support"><b>対応状況を確認中…</b></div><p id="secure"></p><button id="start">🎤 音声入力を開始</button><button id="stop" class="stop" disabled>■ 停止</button></div>
+<div class="card"><b>状態</b><p id="state">待機中</p></div>
+<div class="card"><b>認識した文章（診断用）</b><div id="raw" class="raw">まだ認識していません</div></div>
+<div class="card"><b>抽出した数値</b><p id="count">0 / 10 個</p><div id="grid" class="grid"></div></div>
+<div class="card"><b>エラー・診断情報</b><div id="err" class="raw">なし</div></div>
+<script>
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition,$=id=>document.getElementById(id);
+let rec=null,finalText="";
+function render(a=[]){$("grid").innerHTML="";for(let i=0;i<10;i++){let d=document.createElement("div");d.className="cell";d.innerHTML='<span class="n">'+(i+1)+'株目</span>'+(a[i]??"―");$("grid").appendChild(d)}$("count").textContent=Math.min(a.length,10)+" / 10 個"}
+function nums(t){t=t.replace(/[，、]/g,",");return (t.match(/\d+(?:\.\d+)?/g)||[]).slice(0,10)}
+render();
+$("secure").innerHTML=window.isSecureContext?'<span class="ok">✓ HTTPS（安全なWebページ）です。</span>':'<span class="bad">⚠ HTTPSではありません。GitHub Pagesから開いてください。</span>';
+if(!SR){$("support").innerHTML='<span class="bad">✕ Web音声認識機能を検出できません。</span>';$("start").disabled=true}else{
+$("support").innerHTML='<span class="ok">✓ Web音声認識機能を検出しました。</span>';rec=new SR();rec.lang="ja-JP";rec.interimResults=true;rec.continuous=true;
+rec.onstart=()=>{$("state").textContent="🎙 認識中です";$("start").disabled=true;$("stop").disabled=false;$("err").textContent="なし"};
+rec.onaudiostart=()=>$("state").textContent="🎙 マイク入力を検出しました";
+rec.onspeechstart=()=>$("state").textContent="🗣 音声を認識しています";
+rec.onresult=e=>{let inter="";for(let i=e.resultIndex;i<e.results.length;i++){let t=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=t+" ";else inter+=t}let s=(finalText+inter).trim();$("raw").textContent=s||"音声を待っています…";let a=nums(s);render(a);if(a.length>=10){$("state").textContent="✓ 10個取得しました";try{rec.stop()}catch(x){}}};
+rec.onerror=e=>{$("err").textContent="SpeechRecognition error: "+e.error;$("state").textContent="エラーが発生しました"};
+rec.onend=()=>{$("start").disabled=false;$("stop").disabled=true;if(!$("state").textContent.includes("10個")&&!$("state").textContent.includes("エラー"))$("state").textContent="停止しました"};
+$("start").onclick=()=>{finalText="";$("raw").textContent="音声を待っています…";render([]);$("err").textContent="なし";try{rec.start()}catch(e){$("err").textContent=e.name+": "+e.message}};
+$("stop").onclick=()=>{try{rec.stop()}catch(e){}};
+}
+</script></main></body></html>
