@@ -1,26 +1,23 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>水稲 音声認識テスト</title><style>body{font-family:-apple-system,sans-serif;background:#f5f6f3;margin:0;color:#182018}main{max-width:680px;margin:auto;padding:20px}.card{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 2px 10px #0001}button{width:100%;font-size:21px;font-weight:700;padding:17px;border:0;border-radius:14px;background:#176b37;color:#fff}.stop{background:#8c2f2f;margin-top:10px}.raw{min-height:48px;padding:12px;background:#f2f4f1;border-radius:10px;white-space:pre-wrap}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.cell{background:#eef3ed;border-radius:10px;padding:12px;font-size:20px}.n{font-size:13px;color:#647064;display:block}.ok{color:#176b37}.bad{color:#9b2828}</style></head><body><main>
-<h1>🌾 草丈10株 音声認識テスト</h1><p>iPhoneのSafariで数字10個を連続認識できるか確認します。</p>
-<div class="card"><div id="support"><b>対応状況を確認中…</b></div><p id="secure"></p><button id="start">🎤 音声入力を開始</button><button id="stop" class="stop" disabled>■ 停止</button></div>
-<div class="card"><b>状態</b><p id="state">待機中</p></div>
-<div class="card"><b>認識した文章（診断用）</b><div id="raw" class="raw">まだ認識していません</div></div>
-<div class="card"><b>抽出した数値</b><p id="count">0 / 10 個</p><div id="grid" class="grid"></div></div>
-<div class="card"><b>エラー・診断情報</b><div id="err" class="raw">なし</div></div>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>水稲生育調査</title>
+<style>body{font-family:-apple-system,sans-serif;background:#f4f6f2;margin:0;color:#172018}main{max-width:680px;margin:auto;padding:18px}.card{background:white;border-radius:16px;padding:16px;margin:12px 0}button{font:inherit;border:0;border-radius:13px;padding:15px;font-weight:700}#start,#stop{width:100%;font-size:20px;color:white}#start{background:#176b37}#stop{background:#8b3030;margin-top:8px}button:disabled{opacity:.45}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.item{background:#eef3ed;text-align:left;min-height:70px}.missing{background:#fff8e9}.no{display:block;font-size:13px}.val{font-size:27px}.raw{background:#f1f3f0;padding:11px;border-radius:10px;min-height:38px}#editor{display:none;position:fixed;inset:0;background:#0008;align-items:flex-end}.sheet{width:100%;background:white;padding:20px}input{width:100%;box-sizing:border-box;font-size:30px;padding:13px;margin:10px 0}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.save{background:#176b37;color:white}</style></head><body><main>
+<h1>🌾 水稲生育調査</h1><p>草丈（cm）・10株</p>
+<div class="card"><b id="support">確認中…</b><p id="state">待機中</p><button id="start">🎤 10株を音声入力</button><button id="stop" disabled>■ 停止</button><p>誤認識した数字は下の値をタップして修正できます。</p></div>
+<div class="card"><b>入力結果</b><p id="count">0 / 10 株</p><div id="grid" class="grid"></div></div>
+<div class="card"><b>認識した文章（確認用）</b><div id="raw" class="raw">まだ認識していません</div><p id="err"></p></div></main>
+<div id="editor"><div class="sheet"><b id="editTitle"></b><input id="editInput" inputmode="decimal" type="number" min="0" max="999.9" step="0.1"><div class="actions"><button id="cancel">キャンセル</button><button class="save" id="save">この値に修正</button></div></div></div>
 <script>
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition,$=id=>document.getElementById(id);
-let rec=null,finalText="";
-function render(a=[]){$("grid").innerHTML="";for(let i=0;i<10;i++){let d=document.createElement("div");d.className="cell";d.innerHTML='<span class="n">'+(i+1)+'株目</span>'+(a[i]??"―");$("grid").appendChild(d)}$("count").textContent=Math.min(a.length,10)+" / 10 個"}
-function nums(t){t=t.replace(/[，、]/g,",");return (t.match(/\d+(?:\.\d+)?/g)||[]).slice(0,10)}
-render();
-$("secure").innerHTML=window.isSecureContext?'<span class="ok">✓ HTTPS（安全なWebページ）です。</span>':'<span class="bad">⚠ HTTPSではありません。GitHub Pagesから開いてください。</span>';
-if(!SR){$("support").innerHTML='<span class="bad">✕ Web音声認識機能を検出できません。</span>';$("start").disabled=true}else{
-$("support").innerHTML='<span class="ok">✓ Web音声認識機能を検出しました。</span>';rec=new SR();rec.lang="ja-JP";rec.interimResults=true;rec.continuous=true;
-rec.onstart=()=>{$("state").textContent="🎙 認識中です";$("start").disabled=true;$("stop").disabled=false;$("err").textContent="なし"};
-rec.onaudiostart=()=>$("state").textContent="🎙 マイク入力を検出しました";
-rec.onspeechstart=()=>$("state").textContent="🗣 音声を認識しています";
-rec.onresult=e=>{let inter="";for(let i=e.resultIndex;i<e.results.length;i++){let t=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=t+" ";else inter+=t}let s=(finalText+inter).trim();$("raw").textContent=s||"音声を待っています…";let a=nums(s);render(a);if(a.length>=10){$("state").textContent="✓ 10個取得しました";try{rec.stop()}catch(x){}}};
-rec.onerror=e=>{$("err").textContent="SpeechRecognition error: "+e.error;$("state").textContent="エラーが発生しました"};
-rec.onend=()=>{$("start").disabled=false;$("stop").disabled=true;if(!$("state").textContent.includes("10個")&&!$("state").textContent.includes("エラー"))$("state").textContent="停止しました"};
-$("start").onclick=()=>{finalText="";$("raw").textContent="音声を待っています…";render([]);$("err").textContent="なし";try{rec.start()}catch(e){$("err").textContent=e.name+": "+e.message}};
-$("stop").onclick=()=>{try{rec.stop()}catch(e){}};
-}
-</script></main></body></html>
+const $=x=>document.getElementById(x),SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let values=Array(10).fill(null),rec=null,finalText="",editing=-1;
+function parse(t){return (t.replace(/[，、]/g,",").match(/\d+(?:\.\d+)?/g)||[]).slice(0,10).map(Number)}
+function draw(){$("grid").innerHTML="";values.forEach((v,i)=>{let b=document.createElement("button");b.className="item"+(v===null?" missing":"");b.innerHTML='<span class="no">'+(i+1)+'株目</span><span class="val">'+(v===null?"未入力":v+" cm")+"</span>";b.onclick=()=>edit(i);$("grid").appendChild(b)});$("count").textContent=values.filter(v=>v!==null).length+" / 10 株"}
+function edit(i){editing=i;$("editTitle").textContent=(i+1)+"株目を修正";$("editInput").value=values[i]??"";$("editor").style.display="flex";setTimeout(()=>$("editInput").focus(),100)}
+$("cancel").onclick=()=>$("editor").style.display="none";
+$("save").onclick=()=>{let x=Number($("editInput").value);if($("editInput").value!==""&&x>=0&&x<=999.9){values[editing]=Math.round(x*10)/10;draw();$("editor").style.display="none"}else alert("0～999.9の数値を入力してください。")};draw();
+if(!SR){$("support").textContent="✕ 音声認識を利用できません";$("start").disabled=true}else{$("support").textContent="✓ 音声認識を利用できます";rec=new SR();rec.lang="ja-JP";rec.interimResults=true;rec.continuous=true;
+rec.onstart=()=>{$("state").textContent="🎙 認識中";$("start").disabled=true;$("stop").disabled=false};
+rec.onresult=e=>{let inter="";for(let i=e.resultIndex;i<e.results.length;i++){let t=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=t+" ";else inter+=t}let s=(finalText+inter).trim();$("raw").textContent=s||"音声を待っています…";let a=parse(s);values=Array(10).fill(null);a.forEach((v,i)=>values[i]=v);draw();if(a.length>=10){$("state").textContent="✓ 10株入力。結果を確認してください";try{rec.stop()}catch(x){}}};
+rec.onerror=e=>{$("err").textContent="音声認識エラー: "+e.error;$("state").textContent="エラー"};
+rec.onend=()=>{$("start").disabled=false;$("stop").disabled=true};
+$("start").onclick=()=>{values=Array(10).fill(null);draw();finalText="";$("raw").textContent="音声を待っています…";$("err").textContent="";try{rec.start()}catch(e){$("err").textContent=e.message}};
+$("stop").onclick=()=>{try{rec.stop()}catch(e){}}}
+</script></body></html>
